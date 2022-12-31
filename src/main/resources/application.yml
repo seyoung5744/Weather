@@ -9,5 +9,8 @@ spring:
     show-sql: true
     database: mysql
 
+openweathermap:
+  key: c0b6d9b7af88d1d07a731b532b2887b9
+
 
 

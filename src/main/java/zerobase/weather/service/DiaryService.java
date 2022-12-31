@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONArray;
@@ -20,6 +21,7 @@ import zerobase.weather.repository.DiaryRepository;
 @Service
 @RequiredArgsConstructor
 public class DiaryService {
+
     private static final String CURRENT_CITY_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?q=seoul&appid=";
 
     @Value("${openweathermap.key}")
@@ -44,6 +46,16 @@ public class DiaryService {
             .build();
 
         this.diaryRepository.save(diary);
+    }
+
+    /**
+     * 날짜 기반 날씨 일기 데이터 조회
+     *
+     * @param date
+     * @return
+     */
+    public List<Diary> readDiary(LocalDate date) {
+        return diaryRepository.findAllByDate(date);
     }
 
     private String getWeatherString() {
@@ -77,12 +89,13 @@ public class DiaryService {
         }
     }
 
-    private Map<String, Object> parseWeather(String jsonString){
+    private Map<String, Object> parseWeather(String jsonString) {
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject;
 
-        try{
-            jsonObject = (JSONObject) jsonParser.parse(jsonString);;
+        try {
+            jsonObject = (JSONObject) jsonParser.parse(jsonString);
+            ;
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
@@ -100,4 +113,6 @@ public class DiaryService {
 
         return resultMap;
     }
+
+
 }

@@ -55,7 +55,22 @@ public class DiaryService {
      * @return
      */
     public List<Diary> readDiary(LocalDate date) {
-        return diaryRepository.findAllByDate(date);
+        return this.diaryRepository.findAllByDate(date);
+    }
+
+    public List<Diary> readDiaries(LocalDate startDate, LocalDate endDate) {
+        return this.diaryRepository.findAllByDateBetween(startDate, endDate);
+    }
+
+    public void updateDiary(LocalDate date, String text) {
+        Diary nowDiary = this.diaryRepository.getFirstByDate(date);
+        nowDiary.setText(text);
+
+        this.diaryRepository.save(nowDiary);
+    }
+
+    public void deleteDiary(LocalDate date) {
+        this.diaryRepository.deleteAllByDate(date);
     }
 
     private String getWeatherString() {
@@ -113,6 +128,4 @@ public class DiaryService {
 
         return resultMap;
     }
-
-
 }

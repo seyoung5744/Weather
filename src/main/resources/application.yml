@@ -9,6 +9,10 @@ spring:
     show-sql: true
     database: mysql
 
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
+
 logging:
   config:
     classpath:logback-spring.xml

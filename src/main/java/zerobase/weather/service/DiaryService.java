@@ -5,20 +5,23 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import zerobase.weather.WeatherApplication;
 import zerobase.weather.domain.DateWeather;
 import zerobase.weather.domain.Diary;
 import zerobase.weather.repository.DateWeatherRepository;
@@ -37,10 +40,12 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DateWeatherRepository dateWeatherRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(WeatherApplication.class);
 
     @Transactional
     @Scheduled(cron = "0 0 1 * * *") // 매 새벽 1시마다 동작
     public void saveWeatherDate() {
+        logger.info("오늘도 날씨 데이터 잘 가져옴.");
         dateWeatherRepository.save(getWeatherFromApi());
     }
 
@@ -59,7 +64,7 @@ public class DiaryService {
             .build();
     }
 
-    //    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE, readOnly = false)
     public void createDiary(LocalDate date, String text) {
 //        // open weather map에서 날씨 데이터 가져오기
 //        String weatherData = getWeatherString();
@@ -67,10 +72,10 @@ public class DiaryService {
 //        // 받아온 날씨 json 파싱하기
 //        Map<String, Object> parsedWeather = parseWeather(weatherData);
 
+        logger.info("started to create diary");
+
         // 날씨 데이터 가져오기 (API에서 가져오기? or DB에서 가져오기?)
         DateWeather dateWeather = getDateWeather(date);
-
-
 
         // 파싱된 데이터 + 일기 값 DB 저장
         Diary newDiary = new Diary();
@@ -82,6 +87,7 @@ public class DiaryService {
         newDiary.setText(text);
 
         this.diaryRepository.save(newDiary);
+        logger.info("end to create diary");
     }
 
     private DateWeather getDateWeather(LocalDate date) {
@@ -103,6 +109,7 @@ public class DiaryService {
      */
     @Transactional(readOnly = true)
     public List<Diary> readDiary(LocalDate date) {
+        logger.debug("read diary");
         return this.diaryRepository.findAllByDate(date);
     }
 
@@ -111,7 +118,9 @@ public class DiaryService {
         return this.diaryRepository.findAllByDateBetween(startDate, endDate);
     }
 
+    @Transactional(readOnly = false)
     public void updateDiary(LocalDate date, String text) {
+        logger.info("다이어리 업데이트 : " + text);
         Diary nowDiary = this.diaryRepository.getFirstByDate(date);
         nowDiary.setText(text);
 
